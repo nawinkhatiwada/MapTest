@@ -31,7 +31,8 @@
 
         <activity
             android:name="com.braindigit.brain.maptest.MainActivity"
-            android:theme="@style/MapTest.NoActionBar" />
+            android:theme="@style/MapTest.NoActionBar"
+            android:windowSoftInputMode="adjustPan"/>
     </application>
 
 </manifest>
