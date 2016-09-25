@@ -52,6 +52,7 @@
                     android:orientation="horizontal">
 
                     <EditText
+                        android:id="@+id/firstName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/activity_horizontal_margin"
@@ -64,6 +65,7 @@
 
 
                     <EditText
+                        android:id="@+id/lastName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/activity_horizontal_margin"
@@ -90,6 +92,7 @@
                     android:layout_marginStart="@dimen/activity_horizontal_margin">
 
                     <EditText
+                        android:id="@+id/emailAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/activity_horizontal_margin"
@@ -122,6 +125,7 @@
                         android:layout_marginStart="@dimen/activity_horizontal_margin">
 
                         <EditText
+                            android:id="@+id/address"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="@dimen/activity_horizontal_margin"
@@ -163,6 +167,7 @@
                     android:layout_marginStart="@dimen/activity_horizontal_margin">
 
                     <EditText
+                        android:id="@+id/mobile"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/activity_horizontal_margin"
@@ -170,6 +175,7 @@
                         android:background="@android:color/transparent"
                         android:ems="15"
                         android:hint="@string/mobile_num"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
 
@@ -190,6 +196,7 @@
                     android:layout_marginStart="@dimen/activity_horizontal_margin">
 
                     <EditText
+                        android:id="@+id/phone"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/activity_horizontal_margin"
@@ -197,6 +204,7 @@
                         android:background="@android:color/transparent"
                         android:ems="15"
                         android:hint="@string/phone_num"
+                        android:inputType="phone"
                         android:maxLines="1"
                         android:singleLine="true" />
 
@@ -217,6 +225,7 @@
                     android:layout_marginStart="@dimen/activity_horizontal_margin">
 
                     <EditText
+                        android:id="@+id/townCity"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/activity_horizontal_margin"
@@ -241,7 +250,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/specify_date_time"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </LinearLayout>
 
             <android.support.v7.widget.CardView

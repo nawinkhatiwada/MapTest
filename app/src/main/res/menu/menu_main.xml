@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.braindigit.brain.maptest.MainActivity" >
-    <item android:id="@+id/action_settings"
+    <item android:id="@+id/save"
         android:title="@string/save"
         android:orderInCategory="100"
         app:showAsAction="always" />

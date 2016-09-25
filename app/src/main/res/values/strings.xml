@@ -20,4 +20,6 @@
     <string name="specified_date">Specified Date</string>
     <string name="specify_date_time">SPECIFY DATE AND TIME BELOW</string>
     <string name="set_address">Set this Address</string>
+    <string name="cant_be_empty">Fields cant be empty</string>
+    <string name="success"> SUCCESS</string>
 </resources>
