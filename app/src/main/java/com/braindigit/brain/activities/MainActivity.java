@@ -29,6 +29,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -58,8 +59,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         tvCurrentLocation = (TextView) findViewById(R.id.currentLocation);
         searchLocation = (SearchView) findViewById(R.id.searchLocation);
-
-
+        
         mToolBar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolBar);
         final ActionBar ab = getSupportActionBar();
@@ -142,11 +142,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (mMarker != null) {
                     mMarker.remove();
                 }
-                mMarker = mMap.addMarker(new MarkerOptions()
-                        .position(
-                                new LatLng(latlng.latitude,
-                                        latlng.longitude))
-                        .draggable(true).visible(true));
+                mMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(latlng.latitude,
+                        latlng.longitude)).draggable(true).visible(true)
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
 
                 Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
                 List<Address> addresses = null;
@@ -159,7 +157,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     String postalCode = addresses.get(0).getPostalCode();
                     String knownName = addresses.get(0).getFeatureName();
 
-
 //                        System.out.println(addresses.get(0).getLocality());
 //                        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(" " + address + "\n" + city));
 
@@ -170,7 +167,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (address != null && city != null) {
                     mMarker.setTitle("" + address + ", " + city);
                 }
-
             }
         });
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -182,7 +178,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
 
     public void showGPSDisabledAlertToUser() {
         final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -208,12 +203,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void placeMyLocationButton() {
-        // change position of my location button
         View locationButton = ((View) mapFragment.getView().findViewById(Integer.parseInt("1")).
                 getParent()).findViewById(Integer.parseInt("2"));
-        // and next place it, for exemple, on bottom right (as Google Maps app)
         RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
-        // position on right bottom
         rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
         rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
         rlp.setMargins(0, 0, 30, 30);
@@ -222,19 +214,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_mapview, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -248,6 +235,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             lng = location.getLongitude();
         }
         LatLng latLong = new LatLng(lat, lng);
+
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLong);
+        markerOptions.title("Current Position");
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker));
+        mMap.addMarker(markerOptions);
+
         getLocationFromAddress();
         if (address != null && city != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLong, 16));
