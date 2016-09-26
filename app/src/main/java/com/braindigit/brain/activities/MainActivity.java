@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     Button setAddress;
     String address;
     String city;
-    SearchView searchLocation;
+    SearchView mSearchView;
     Marker mMarker;
     double lat = 0;
     double lng = 0;
@@ -58,8 +60,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         tvCurrentLocation = (TextView) findViewById(R.id.currentLocation);
-        searchLocation = (SearchView) findViewById(R.id.searchLocation);
-        
+        mSearchView = (SearchView) findViewById(R.id.searchLocation);
+
         mToolBar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolBar);
         final ActionBar ab = getSupportActionBar();
@@ -98,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        searchLocation.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 getSearchedLocation();
@@ -110,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return false;
             }
         });
-
     }
 
     @Override
@@ -118,9 +119,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
         //method used for placing my location button at bottom right corner
         placeMyLocationButton();
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
             return;
         }
         mMap.setMyLocationEnabled(true);
@@ -145,28 +147,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(latlng.latitude,
                         latlng.longitude)).draggable(true).visible(true)
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker)));
-
-                Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
-                List<Address> addresses = null;
-                try {
-                    addresses = geoCoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
-                    address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                    city = addresses.get(0).getLocality();
-                    String state = addresses.get(0).getAdminArea();
-                    String country = addresses.get(0).getCountryName();
-                    String postalCode = addresses.get(0).getPostalCode();
-                    String knownName = addresses.get(0).getFeatureName();
-
-//                        System.out.println(addresses.get(0).getLocality());
-//                        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(" " + address + "\n" + city));
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                if (address != null && city != null) {
-                    mMarker.setTitle("" + address + ", " + city);
-                }
+                //displays the marker and get the palces name
+                afterMapLongCLick(latlng);
             }
         });
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -175,6 +157,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (mMarker != null && mMarker.isVisible()) {
                     mMarker.remove();
                 }
+            }
+        });
+        mMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+            @Override
+            public void onMarkerDragStart(Marker marker) {
+            }
+
+            @Override
+            public void onMarkerDrag(Marker marker) {
+
+            }
+
+            @Override
+            public void onMarkerDragEnd(Marker marker) {
+                afterMapLongCLick(marker.getPosition());
+
             }
         });
     }
@@ -235,14 +233,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             lng = location.getLongitude();
         }
         LatLng latLong = new LatLng(lat, lng);
-
-
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLong);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker));
-        mMap.addMarker(markerOptions);
-
+//
+//        MarkerOptions markerOptions = new MarkerOptions();
+//        markerOptions.position(latLong);
+//        markerOptions.title("Current Position");
+//        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(resizeMapIcons("ic_location",100,100)));
+//        mMap.addMarker(markerOptions);
         getLocationFromAddress();
         if (address != null && city != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLong, 16));
@@ -254,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void getSearchedLocation() {
 
         List<Address> addressList = null;
-        CharSequence SEARCHLOC = searchLocation.getQuery();
+        CharSequence SEARCHLOC = mSearchView.getQuery();
         Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
         try {
             addressList = geoCoder.getFromLocationName(String.valueOf(SEARCHLOC), 1);
@@ -266,7 +262,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
             mMap.addMarker(new MarkerOptions().position(latLng).title("" + address.getLatitude() + "," + address.getLongitude()));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
-
         }
     }
 
@@ -283,10 +278,37 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             String postalCode = addresses.get(0).getPostalCode();
             String knownName = addresses.get(0).getFeatureName();
 
-
 //                        System.out.println(addresses.get(0).getLocality());
 //                        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(" " + address + "\n" + city));
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Bitmap resizeMapIcons(String iconName, int width, int height) {
+        Bitmap imageBitmap = BitmapFactory.decodeResource(getResources(), getResources().getIdentifier(iconName, "drawable", getPackageName()));
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+        return resizedBitmap;
+    }
+
+    private void afterMapLongCLick(LatLng latlng) {
+        Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+        List<Address> addresses = null;
+        try {
+            addresses = geoCoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
+            address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+            city = addresses.get(0).getLocality();
+            String state = addresses.get(0).getAdminArea();
+            String country = addresses.get(0).getCountryName();
+            String postalCode = addresses.get(0).getPostalCode();
+            String knownName = addresses.get(0).getFeatureName();
+
+//                        System.out.println(addresses.get(0).getLocality());
+//                        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(" " + address + "\n" + city));
+            if (address != null && city != null) {
+                mMarker.setTitle("" + address + ", " + city);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
