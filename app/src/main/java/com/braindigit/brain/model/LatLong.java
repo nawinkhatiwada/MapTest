@@ -8,5 +8,5 @@ public class LatLong {
     public double Latitude;
     public double Longitude;
 
-    public LatLong(){}
+    public LatLong(double latitude, double longitude){}
 }

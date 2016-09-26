@@ -1,18 +1,14 @@
-package com.braindigit.brain.maptest;
+package com.braindigit.brain.activities;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
@@ -24,41 +20,45 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.braindigit.brain.model.LatLong;
 import com.example.brain.test.R;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.LocationSource;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     GoogleMap mMap;
     LocationManager mLocationManager;
-    TextView currentLocation;
+    TextView tvCurrentLocation;
     SupportMapFragment mapFragment;
     Toolbar mToolBar;
     Button setAddress;
     String address;
     String city;
+    SearchView searchLocation;
+    Marker mMarker;
+    double lat = 0;
+    double lng = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        tvCurrentLocation = (TextView) findViewById(R.id.currentLocation);
+        searchLocation = (SearchView) findViewById(R.id.searchLocation);
+
 
         mToolBar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolBar);
@@ -68,8 +68,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             ab.setHomeButtonEnabled(true);
             ab.setTitle("SET YOUR LOCATION");
         }
-
-        currentLocation = (TextView) findViewById(R.id.currentLocation);
 
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -88,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onClick(View v) {
 
-                if(address != null && city != null) {
+                if (address != null && city != null) {
                     if (address != null && city != null) {
                         String finalLocation = address + ", " + city;
                         Intent returnIntent = new Intent();
@@ -97,6 +95,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         finish();
                     }
                 }
+            }
+        });
+
+        searchLocation.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                getSearchedLocation();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
             }
         });
 
@@ -118,20 +129,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onMyLocationChange(Location location) {
-                // TODO Auto-generated method stub
+                getCurrentLocation(location);
+                mMap.setOnMyLocationChangeListener(null);
+            }
 
-                double lat = 0;
-                double lng = 0;
-                if (location != null) {
-                    lat = location.getLatitude();
-                    lng = location.getLongitude();
+        });
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+
+            @Override
+            public void onMapLongClick(LatLng latlng) {
+                if (mMarker != null) {
+                    mMarker.remove();
                 }
-                LatLng ll = new LatLng(lat, lng);
+                mMarker = mMap.addMarker(new MarkerOptions()
+                        .position(
+                                new LatLng(latlng.latitude,
+                                        latlng.longitude))
+                        .draggable(true).visible(true));
 
                 Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
                 List<Address> addresses = null;
                 try {
-                    addresses = geoCoder.getFromLocation(lat, lng, 1);
+                    addresses = geoCoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
                     address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
                     city = addresses.get(0).getLocality();
                     String state = addresses.get(0).getAdminArea();
@@ -142,14 +162,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 //                        System.out.println(addresses.get(0).getLocality());
 //                        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(" " + address + "\n" + city));
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(ll, 16));
-                    currentLocation.setText("" + address + ", " + city);
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
 
+                if (address != null && city != null) {
+                    mMarker.setTitle("" + address + ", " + city);
+                }
+
+            }
+        });
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if (mMarker != null && mMarker.isVisible()) {
+                    mMarker.remove();
+                }
+            }
         });
     }
 
@@ -210,5 +240,60 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void getCurrentLocation(Location location) {
+        if (location != null) {
+            lat = location.getLatitude();
+            lng = location.getLongitude();
+        }
+        LatLng latLong = new LatLng(lat, lng);
+        getLocationFromAddress();
+        if (address != null && city != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLong, 16));
+            tvCurrentLocation.setText("" + address + ", " + city);
+        }
+
+    }
+
+    private void getSearchedLocation() {
+
+        List<Address> addressList = null;
+        CharSequence SEARCHLOC = searchLocation.getQuery();
+        Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+        try {
+            addressList = geoCoder.getFromLocationName(String.valueOf(SEARCHLOC), 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Address address = addressList.get(0);
+        if (address != null) {
+            LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(latLng).title("" + address.getLatitude() + "," + address.getLongitude()));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16));
+
+        }
+    }
+
+    void getLocationFromAddress() {
+
+        Geocoder geoCoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+        List<Address> addresses = null;
+        try {
+            addresses = geoCoder.getFromLocation(lat, lng, 1);
+            address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+            city = addresses.get(0).getLocality();
+            String state = addresses.get(0).getAdminArea();
+            String country = addresses.get(0).getCountryName();
+            String postalCode = addresses.get(0).getPostalCode();
+            String knownName = addresses.get(0).getFeatureName();
+
+
+//                        System.out.println(addresses.get(0).getLocality());
+//                        mMap.addMarker(new MarkerOptions().position(new LatLng(lat, lng)).title(" " + address + "\n" + city));
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

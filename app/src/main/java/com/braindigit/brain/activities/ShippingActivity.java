@@ -1,4 +1,4 @@
-package com.braindigit.brain.maptest;
+package com.braindigit.brain.activities;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -123,4 +123,5 @@ public class ShippingActivity extends AppCompatActivity {
         Matcher matcher = pattern.matcher(email);
         return matcher.matches();
     }
+
 }
